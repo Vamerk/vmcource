@@ -33,9 +33,9 @@ def result(request):
     y_fit = polynomial(x)
 
     context = {
-        'x_values': x,
-        'y_values': y,
-        'y_fit': y_fit,
+        'x_values': x.tolist(),  # Преобразуем numpy.array в список
+        'y_values': y.tolist(),
+        'y_fit': y_fit.tolist(),
         'polynomial': str(polynomial),
         'error': data.error,
     }
