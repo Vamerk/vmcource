@@ -1,4 +1,4 @@
-Django==4.2.6
-djangorestframework==3.14.0
+Django==5.1.4
+djangorestframework==3.15.1
 psycopg2-binary==2.9.9  # Для работы с PostgreSQL
-numpy
+numpy==2.2.1
