@@ -11,29 +11,29 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">Result of Least Squares Method</h1>
+        <h1 class="mb-4">Результат метода наименьших квадратов</h1>
         <div class="row">
             <div class="col-md-6">
-                <h3>Input Data</h3>
+                <h3>Входные данные</h3>
                 <p><strong>X Values:</strong> {{ x_values }}</p>
                 <p><strong>Y Values:</strong> {{ y_values }}</p>
                 <p><strong>Error δ:</strong> {{ error }}</p>
             </div>
             <div class="col-md-6">
-                <h3>Fitted Polynomial</h3>
+                <h3>Подогнанный полином</h3>
                 <p><strong>Polynomial:</strong> {{ polynomial }}</p>
-                <p><strong>Fitted Y Values:</strong> {{ y_fit }}</p>
+                <p><strong>Подогнанное значение Y:</strong> {{ y_fit }}</p>
             </div>
         </div>
 
         <!-- Контейнер для графика -->
         <div class="mt-5">
-            <h3>Visualization</h3>
+            <h3>График</h3>
             <canvas id="chart" width="400" height="200"></canvas>
         </div>
         <!-- Кнопка "Назад" -->
         <div class="mt-4">
-            <a href="{% url 'input_data' %}" class="btn btn-secondary">Back to Input</a>
+            <a href="{% url 'input_data' %}" class="btn btn-secondary">Назад</a>
         </div>
     </div>
 
