@@ -9,6 +9,12 @@
 </head>
 <body>
     <div class="container mt-5">
+        <h1 class="mb-4">Шаблоны</h1>
+        <form method="post" class="form">
+            {% csrf_token %}
+            <button type="submit" name="load_template" class="btn btn-primary">Загрузить шаблон</button>
+        </form>
+
         <h1 class="mb-4">Input Function Data</h1>
         <form method="post" class="form">
             {% csrf_token %}
