@@ -2,12 +2,14 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import FunctionData
 import numpy as np
+import json
+
 
 def input_data(request):
     if request.method == 'POST':
         # Если нажата кнопка "Загрузить шаблон"
         if 'load_template' in request.POST:
-            # Данные шаблонов
+            # Шаблоны данных
             templates = [
                 {
                     'name': 'Кубическая',
@@ -27,81 +29,100 @@ def input_data(request):
                 {
                     'name': 'Гиперболическая',
                     'x': [-10, -5, -2, -1, 1, 2, 5, 8, 10],
-                    'y': [1 / -10, 1 / -5, 1 / -2, 1 / -1, 1 / 1, 1 / 2, 1 / 5, 1 / 8, 1 / 10],
+                    'y': [1 / -10, 1 / -5, 1 / -2, 1 / -1, 1, 1 / 2, 1 / 5, 1 / 8, 1 / 10],
                 },
                 {
                     'name': 'Квадратичная',
                     'x': [2.21, 2.24, 2.25, 2.3, 2.35, 2.37, 2.4, 2.41, 2.45, 2.47],
                     'y': [5.7816, 6.15292, 6.23877, 6.81036, 6.99732, 7.3326, 7.7662, 7.4108, 8.2008, 8.0025],
                 },
+                # Остальные шаблоны...
             ]
 
-            # Применяем МНК к каждой функции в шаблоне
+            # Обработка каждого шаблона
             for template in templates:
                 x = np.array(template['x'])
                 y = np.array(template['y'])
-                coefficients = np.polyfit(x, y, 1)  # Линейная аппроксимация
-                polynomial = np.poly1d(coefficients)
-                y_fit = polynomial(x)
-                template['y_fit'] = y_fit.tolist()
+
+                # Выбор аппроксимации
+                if template['name'] == 'Кубическая':
+                    coefficients = np.polyfit(x, y, 3)
+                elif template['name'] == 'Степенная':
+                    coefficients = np.polyfit(np.log(x), np.log(y), 1)
+                    polynomial = lambda x: np.exp(coefficients[1]) * x**coefficients[0]
+                elif template['name'] == 'Гиперболическая':
+                    coefficients = np.polyfit(x, 1 / y, 1)
+                    polynomial = lambda x: 1 / (coefficients[0] * x + coefficients[1])
+                elif template['name'] == 'Квадратичная':
+                    coefficients = np.polyfit(x, y, 2)
+                else:  # Линейная или другие
+                    coefficients = np.polyfit(x, y, 1)
+
+                if template['name'] in ['Степенная', 'Гиперболическая']:
+                    y_fit = [polynomial(val) for val in x]
+                    template['y_fit'] = json.dumps(y_fit)  # Преобразуем в список, затем в JSON
+
+                else:
+                    polynomial = np.poly1d(coefficients)
+                    y_fit = polynomial(x)
+                    template['y_fit'] = json.dumps(y_fit.tolist())  # Преобразуем в список, затем в JSON
+
+                # Сохраняем данные
                 template['polynomial'] = str(polynomial)
 
-            # Передаем данные в контекст шаблона
             return render(request, 'interpolation/result.html', {'templates': templates})
 
-        # Обработка обычной формы ввода данных
+        # Обработка пользовательского ввода
         x_values = request.POST.get('x_values')
         y_values = request.POST.get('y_values')
-        error = float(request.POST.get('error'))
+        error = request.POST.get('error', 0)
 
-        # Сохранение данных в базу
+        if not x_values or not y_values:
+            return HttpResponse("Введите данные для x и y.")
+
+        try:
+            x_values = list(map(float, x_values.split(',')))
+            y_values = list(map(float, y_values.split(',')))
+            error = float(error)
+        except ValueError:
+            return HttpResponse("Некорректный формат данных. Используйте числа, разделенные запятыми.")
+
+        if len(x_values) != len(y_values):
+            return HttpResponse("Количество x и y должно совпадать.")
+
+        # Сохраняем данные в базу
         FunctionData.objects.create(x_values=x_values, y_values=y_values, error=error)
         return redirect('result')
 
     return render(request, 'interpolation/input_data.html')
 
-def result(request):
-    # Проверяем, переданы ли шаблоны через контекст
-    if 'templates' in request.session:
-        templates = request.session.pop('templates')  # Удаляем из сессии после использования
-        return render(request, 'interpolation/result.html', {'templates': templates})
-    elif 'templates' in request.GET:
-        templates = request.GET.get('templates')
-        return render(request, 'interpolation/result.html', {'templates': templates})
 
-    # Если шаблоны не переданы, используем последнюю запись из базы данных
+def result(request):
+    # Получение последней записи из базы
     data = FunctionData.objects.last()
     if not data:
-        return HttpResponse("No data available")
+        return HttpResponse("Нет доступных данных.")
 
     x = np.array(data.get_x_list())
     y = np.array(data.get_y_list())
 
-    # Проверка на достаточное количество точек
-    if len(x) < 2:
-        return HttpResponse("Not enough data points for linear approximation")
+    if len(x) < 2 or len(y) < 2:
+        return HttpResponse("Недостаточно точек данных для аппроксимации.")
 
-    # Проверка на постоянство данных
-    if np.all(x == x[0]) or np.all(y == y[0]):
-        return HttpResponse("Data is constant, cannot perform fitting")
-
-    # Метод наименьших квадратов
-    degree = int(request.GET.get('degree', 1))  # По умолчанию степень 1
+    degree = int(request.GET.get('degree', 1))
     try:
         coefficients = np.polyfit(x, y, degree)
+        polynomial = np.poly1d(coefficients)
+        y_fit = polynomial(x)
     except np.linalg.LinAlgError as e:
-        return HttpResponse(f"Error in polynomial fitting: {e}")
+        return HttpResponse(f"Ошибка при аппроксимации: {e}")
 
-    polynomial = np.poly1d(coefficients)
-    y_fit = polynomial(x)
-
-    # Вычисление среднеквадратичной ошибки
-    mse = np.mean((y - y_fit) ** 2)
+    mse = np.mean((y - y_fit) ** 2)  # Среднеквадратичная ошибка
 
     context = {
-        'x_values': x.tolist(),  # Преобразуем numpy.array в список
-        'y_values': y.tolist(),
-        'y_fit': y_fit.tolist(),
+        'x_values': json.dumps(x.tolist()),  # Преобразуем в JSON
+        'y_values': json.dumps(y.tolist()),  # Преобразуем в JSON
+        'y_fit': json.dumps(y_fit.tolist()),  # Преобразуем в JSON
         'polynomial': str(polynomial),
         'error': data.error,
         'mse': mse,

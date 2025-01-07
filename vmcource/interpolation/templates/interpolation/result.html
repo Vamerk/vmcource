@@ -11,36 +11,34 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">Результат метода наименьших квадратов</h1>
+        <h1 class="mb-4">Результаты аппроксимации методом наименьших квадратов</h1>
 
-        <!-- Если переданы шаблоны -->
+        <!-- Вывод шаблонов -->
         {% if templates %}
             {% for template in templates %}
             <div class="mt-5">
                 <h3>{{ template.name }}</h3>
-                <p><strong>X Values:</strong> {{ template.x }}</p>
-                <p><strong>Y Values:</strong> {{ template.y }}</p>
+                <p><strong>X Values:</strong> {{ template.x|join:", " }}</p>
+                <p><strong>Y Values:</strong> {{ template.y|join:", " }}</p>
                 <p><strong>Polynomial:</strong> {{ template.polynomial }}</p>
                 <canvas id="chart-{{ forloop.counter }}" width="400" height="200"></canvas>
             </div>
             {% endfor %}
         {% else %}
-            <!-- Если используется последняя запись из базы данных -->
+            <!-- Если данные загружены из базы -->
             <div class="row">
                 <div class="col-md-6">
                     <h3>Входные данные</h3>
-                    <p><strong>X Values:</strong> {{ x_values }}</p>
-                    <p><strong>Y Values:</strong> {{ y_values }}</p>
+                    <p><strong>X Values:</strong> {{ x_values|join:", " }}</p>
+                    <p><strong>Y Values:</strong> {{ y_values|join:", " }}</p>
                     <p><strong>Error δ:</strong> {{ error }}</p>
                 </div>
                 <div class="col-md-6">
                     <h3>Подогнанный полином</h3>
                     <p><strong>Polynomial:</strong> {{ polynomial }}</p>
-                    <p><strong>Подогнанное значение Y:</strong> {{ y_fit }}</p>
+                    <p><strong>Подогнанное значение Y:</strong> {{ y_fit|join:", " }}</p>
                 </div>
             </div>
-
-            <!-- Контейнер для графика -->
             <div class="mt-5">
                 <h3>График</h3>
                 <canvas id="chart" width="400" height="200"></canvas>
@@ -54,35 +52,30 @@
     </div>
 
     <script>
-        // Если переданы шаблоны
+        // Графики для шаблонов
         {% if templates %}
             {% for template in templates %}
-            const xValues{{ forloop.counter }} = {{ template.x|safe }};
-            const yValues{{ forloop.counter }} = {{ template.y|safe }};
-            const yFit{{ forloop.counter }} = {{ template.y_fit|safe }};
 
-            // Создаем график для текущего шаблона
             const ctx{{ forloop.counter }} = document.getElementById('chart-{{ forloop.counter }}').getContext('2d');
             new Chart(ctx{{ forloop.counter }}, {
                 type: 'line',
                 data: {
-                    labels: xValues{{ forloop.counter }},
+                    labels: {{ template.x|safe }},
                     datasets: [
                         {
                             label: 'Original Data',
-                            data: yValues{{ forloop.counter }},
+                            data: {{ template.y|safe }},
                             borderColor: 'rgba(255, 99, 132, 1)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
                             borderWidth: 2,
                             fill: false,
                             pointRadius: 5,
-                            pointHoverRadius: 7,
+                            type: 'scatter',
                         },
                         {
                             label: 'Fitted Data',
-                            data: yFit{{ forloop.counter }},
+                            data: {{ template.y_fit|safe }},
                             borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
                             borderWidth: 2,
                             fill: false,
                             pointRadius: 0,
@@ -93,48 +86,37 @@
                     responsive: true,
                     scales: {
                         x: {
-                            title: {
-                                display: true,
-                                text: 'X Values',
-                            },
+                            title: { display: true, text: 'X Values' },
                         },
                         y: {
-                            title: {
-                                display: true,
-                                text: 'Y Values',
-                            },
+                            title: { display: true, text: 'Y Values' },
                         },
                     },
                 },
             });
             {% endfor %}
         {% else %}
-            // Если используется последняя запись из базы данных
-            const xValues = {{ x_values|safe }};
-            const yValues = {{ y_values|safe }};
-            const yFit = {{ y_fit|safe }};
-
+            // График для данных из базы
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: xValues,
+                    labels: {{ x_values|safe }},
                     datasets: [
                         {
                             label: 'Original Data',
-                            data: yValues,
+                            data: {{ y_values|safe }},
                             borderColor: 'rgba(255, 99, 132, 1)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
                             borderWidth: 2,
                             fill: false,
                             pointRadius: 5,
-                            pointHoverRadius: 7,
+                            type: 'scatter',
                         },
                         {
                             label: 'Fitted Data',
-                            data: yFit,
+                            data: {{ y_fit|safe }},
                             borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
                             borderWidth: 2,
                             fill: false,
                             pointRadius: 0,
@@ -145,16 +127,10 @@
                     responsive: true,
                     scales: {
                         x: {
-                            title: {
-                                display: true,
-                                text: 'X Values',
-                            },
+                            title: { display: true, text: 'X Values' },
                         },
                         y: {
-                            title: {
-                                display: true,
-                                text: 'Y Values',
-                            },
+                            title: { display: true, text: 'Y Values' },
                         },
                     },
                 },
