@@ -18,8 +18,8 @@
             {% for template in templates %}
             <div class="mt-5">
                 <h3>{{ template.name }}</h3>
-                <p><strong>X Values:</strong> {{ template.x|join:", " }}</p>
-                <p><strong>Y Values:</strong> {{ template.y|join:", " }}</p>
+                <p><strong>Значения X:</strong> {{ template.x|join:", " }}</p>
+                <p><strong>Значения Y:</strong> {{ template.y|join:", " }}</p>
                 <p><strong>Polynomial:</strong> {{ template.polynomial }}</p>
                 <canvas id="chart-{{ forloop.counter }}" width="400" height="200"></canvas>
             </div>
@@ -29,9 +29,9 @@
             <div class="row">
                 <div class="col-md-6">
                     <h3>Входные данные</h3>
-                    <p><strong>X Values:</strong> {{ x_values|join:", " }}</p>
-                    <p><strong>Y Values:</strong> {{ y_values|join:", " }}</p>
-                    <p><strong>Error δ:</strong> {{ error }}</p>
+                    <p><strong>Значения X:</strong> {{ x_values|join:", " }}</p>
+                    <p><strong>Значения Y:</strong> {{ y_values|join:", " }}</p>
+                    <p><strong>δ:</strong> {{ error }}</p>
                 </div>
                 <div class="col-md-6">
                     <h3>Подогнанный полином</h3>
@@ -63,7 +63,7 @@
                     labels: {{ template.x|safe }},
                     datasets: [
                         {
-                            label: 'Original Data',
+                            label: 'Исходные значения',
                             data: {{ template.y|safe }},
                             borderColor: 'rgba(255, 99, 132, 1)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -73,7 +73,7 @@
                             type: 'scatter',
                         },
                         {
-                            label: 'Fitted Data',
+                            label: 'Подогнанные значения',
                             data: {{ template.y_fit|safe }},
                             borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 2,
@@ -86,10 +86,10 @@
                     responsive: true,
                     scales: {
                         x: {
-                            title: { display: true, text: 'X Values' },
+                            title: { display: true, text: 'X' },
                         },
                         y: {
-                            title: { display: true, text: 'Y Values' },
+                            title: { display: true, text: 'Y' },
                         },
                     },
                 },
@@ -104,7 +104,7 @@
                     labels: {{ x_values|safe }},
                     datasets: [
                         {
-                            label: 'Original Data',
+                            label: 'Исходные значения',
                             data: {{ y_values|safe }},
                             borderColor: 'rgba(255, 99, 132, 1)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -114,7 +114,7 @@
                             type: 'scatter',
                         },
                         {
-                            label: 'Fitted Data',
+                            label: 'Подогнанные значения',
                             data: {{ y_fit|safe }},
                             borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 2,
@@ -127,10 +127,10 @@
                     responsive: true,
                     scales: {
                         x: {
-                            title: { display: true, text: 'X Values' },
+                            title: { display: true, text: 'X' },
                         },
                         y: {
-                            title: { display: true, text: 'Y Values' },
+                            title: { display: true, text: 'Y' },
                         },
                     },
                 },
